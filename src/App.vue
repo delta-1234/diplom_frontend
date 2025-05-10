@@ -73,7 +73,7 @@
         </tbody>
       </table>
     </div>
-    <div ref="radarChart" style="width: 600px; height: 400px;"></div>
+    <div ref="radarChart" style="width: 800px; height: 600px;"></div>
 
     <!-- 图表容器保持不变 -->
     <div class="chart-row">
@@ -339,7 +339,7 @@ export default {
   methods: {
     fetchData() {
       // 这里可以添加从后端获取数据的逻辑
-      axios.get('/api/get_hardware_all')
+      axios.get('http://127.0.0.1:8000/api/get_hardware_all')
         .then(response => {
           // 假设返回的数据结构与 modeTableHeaders 相同
           // this.modeTable = response.data.modeTable;
@@ -349,33 +349,20 @@ export default {
         .catch(error => {
           console.error('获取数据失败:', error);
         });
-      axios.get('/api/get_model_all')
+      axios.get('http://127.0.0.1:8000/api/get_model_all')
         .then(response => {
           // 假设返回的数据结构与 modeTableHeaders 相同
           // this.modeTable = response.data.modeTable;
           this.modelTable = response.data;
           // this.hardwareTable = response.data.hardwareTable;
         })
-      axios.get('/api/get_mode_all')
+      axios.get('http://127.0.0.1:8000/api/get_mode_all')
         .then(response => {
           // 假设返回的数据结构与 modeTableHeaders 相同
           this.modeTable = response.data;
           // this.modelTable = response.data.modelTable;
           // this.hardwareTable = response.data.hardwareTable;
         })
-    },
-    fetchBase() {
-      axios.post('/api/metrics', {
-        id: this.id,
-        base_id: this.base_id
-      })
-        .then(response => {
-          // 处理响应数据
-          console.log(response.data);
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-        });
     },
     initChart() {
       const chart = echarts.init(this.$refs.radarChart);
@@ -410,7 +397,7 @@ export default {
         { name: '平均文本生成时间 (ns)', max: 1000000000 },
         { name: '平均利用率 (%)', max: 100 },
         { name: '平均显存占用 (MB)', max: 100000 },
-        { name: '每查询的能耗 (J)', max: 100 },
+        { name: '每查询的能耗 (J)', max: 300 },
       ];
       const translateKeys = {
         '精准度 (%)': 'accuracy',
@@ -458,7 +445,6 @@ export default {
         }
         return reversedValues;
       };
-
       const option = {
         title: { text: '性能对比雷达图' },
         legend: {
@@ -498,7 +484,7 @@ export default {
       chart.setOption(option);
 
     },
-    triggerEvent() {
+    async triggerEvent() {
       const selectedModeData = this.modeTable[this.selectedMode]?.find(item =>
         item.hardware_name === this.selectedHardware && item.model_name === this.selectedModel
       );
@@ -512,28 +498,30 @@ export default {
       } else {
         console.log('No matching data found for the selected combination.');
       }
+      // console.log('Selected Mode Data:', selectedModeData);
       const mergedData = {
         ...Object.fromEntries(Object.entries(selectedModeData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
         ...Object.fromEntries(Object.entries(selectedModelData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
         ...Object.fromEntries(Object.entries(selectedHardwareData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key)))
       };
       // console.log('Merged Data:', mergedData);
-      // this.data = [{
-      //   name: `${this.selectedModel} + ${this.selectedHardware}`,
-      //   values: mergedData
-      // }];
-      axios.post('/api/metrics', {
-        "model_name": "llava-1.5-7b-hf",
-        "test_mode": "Server"
+      this.data = [{
+        name: `${this.selectedModel} + ${this.selectedHardware}`,
+        values: mergedData
+      }];
+      await axios.post('http://127.0.0.1:8000/api/get_baseline_id', {
+        "model_name": this.selectedModel,
+        "test_mode": this.selectedMode
       })
         .then(response => {
           // 处理响应数据
           this.base_id = response.data.baseline_id;
-
+          console.log('Base ID:', this.base_id);
           // Find three matching data entries based on the base_id
-          const matchingModeData = this.modeTable[this.selectedMode]?.filter(item => item.id === this.base_id);
-          const matchingModelData = this.modelTable[this.selectedMode]?.filter(item => item.id === this.base_id);
-          const matchingHardwareData = this.hardwareTable[this.selectedMode]?.filter(item => item.id === this.base_id);
+          const matchingModeData = this.modeTable[this.selectedMode]?.find(item => item.id === this.base_id);
+          const matchingModelData = this.modelTable[this.selectedMode]?.find(item => item.id === this.base_id);
+          const matchingHardwareData = this.hardwareTable[this.selectedMode]?.find(item => item.id === this.base_id);
+          // console.log('Matching Mode Data:', matchingModeData);
           // Combine the matching data into the `data` array with one name and others in values
           this.data = [
             {
@@ -550,21 +538,22 @@ export default {
             }
           ];
           // Combine the matching data into the `data` array
-          this.data = [
-            ...this.data,
-            ...matchingModeData.map(item => ({
-              name: `${item.model_name} + ${item.hardware_name} (Mode)`,
-              values: item
-            })),
-            ...matchingModelData.map(item => ({
-              name: `${item.model_name} + ${item.hardware_name} (Model)`,
-              values: item
-            })),
-            ...matchingHardwareData.map(item => ({
-              name: `${item.model_name} + ${item.hardware_name} (Hardware)`,
-              values: item
-            }))
-          ];
+          // this.data = [
+          //   ...this.data,
+          //   ...matchingModeData.map(item => ({
+          //     name: `${item.model_name} + ${item.hardware_name} (Mode)`,
+          //     values: item
+          //   })),
+          //   ...matchingModelData.map(item => ({
+          //     name: `${item.model_name} + ${item.hardware_name} (Model)`,
+          //     values: item
+          //   })),
+          //   ...matchingHardwareData.map(item => ({
+          //     name: `${item.model_name} + ${item.hardware_name} (Hardware)`,
+          //     values: item
+          //   }))
+          // ];
+          console.log('Data:1', this.data);  
           // console.log(response.data);
         })
         .catch(error => {
@@ -578,7 +567,7 @@ export default {
   },
   mounted() {
     // this.initCharts();
-    // this.fetchData();
+    this.fetchData();
     // this.initChart();
   },
   watch: {
