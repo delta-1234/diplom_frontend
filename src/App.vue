@@ -79,6 +79,7 @@
         <p style="font-size: 18px; font-weight: bold;">评分: {{ score }}</p>
         <p style="font-size: 16px; color: gray;">建议: {{ suggestion }}</p>
       </div>
+      <div ref="barChart" style="width: 800px; height: 600px;"></div>
     </div>
 
 
@@ -483,6 +484,29 @@ export default {
 
       };
       chart.setOption(option);
+      const barChart = echarts.init(this.$refs.barChart);
+      const barOption = {
+        xAxis: {
+          type: 'category',
+          data: allIndicators
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: this.data[0].values && this.data[1].values
+              ? Object.keys(this.data[0].values).map(key =>
+                this.data[1].values[key] !== 0
+                  ? this.data[0].values[key] / this.data[1].values[key]
+                  : 0
+              )
+              : [],
+            type: 'bar'
+          }
+        ]
+      };
+      barChart.setOption(barOption);
 
     },
     async triggerEvent() {
