@@ -73,7 +73,14 @@
         </tbody>
       </table>
     </div>
-    <div ref="radarChart" style="width: 800px; height: 600px;"></div>
+    <div v-show="flag" style="display: flex;">
+      <div ref="radarChart" style="width: 800px; height: 600px;"></div>
+      <div>
+        <p style="font-size: 18px; font-weight: bold;">评分: {{ score }}</p>
+        <p style="font-size: 16px; color: gray;">建议: {{ suggestion }}</p>
+      </div>
+    </div>
+
 
     <!-- 图表容器保持不变 -->
     <div class="chart-row">
@@ -89,6 +96,9 @@ export default {
   name: 'BenchmarkMetrics',
   data() {
     return {
+      flag: false,
+      score: '',
+      suggestion: '',
       data: [
         {
           name: '方案A',
@@ -341,9 +351,6 @@ export default {
       // 这里可以添加从后端获取数据的逻辑
       axios.get('http://127.0.0.1:8000/api/get_hardware_all')
         .then(response => {
-          // 假设返回的数据结构与 modeTableHeaders 相同
-          // this.modeTable = response.data.modeTable;
-          // this.modelTable = response.data.modelTable;
           this.hardwareTable = response.data;
         })
         .catch(error => {
@@ -351,17 +358,11 @@ export default {
         });
       axios.get('http://127.0.0.1:8000/api/get_model_all')
         .then(response => {
-          // 假设返回的数据结构与 modeTableHeaders 相同
-          // this.modeTable = response.data.modeTable;
           this.modelTable = response.data;
-          // this.hardwareTable = response.data.hardwareTable;
         })
       axios.get('http://127.0.0.1:8000/api/get_mode_all')
         .then(response => {
-          // 假设返回的数据结构与 modeTableHeaders 相同
           this.modeTable = response.data;
-          // this.modelTable = response.data.modelTable;
-          // this.hardwareTable = response.data.hardwareTable;
         })
     },
     initChart() {
@@ -485,6 +486,16 @@ export default {
 
     },
     async triggerEvent() {
+      const selectedEntry = this.modeTable[this.selectedMode]?.find(item =>
+        item.hardware_name === this.selectedHardware && item.model_name === this.selectedModel
+      );
+      if (selectedEntry) {
+        this.id = selectedEntry.id;
+        this.flag = true;
+      } else {
+        console.log('No matching entry found for the selected combination.');
+        this.flag = false;
+      }
       const selectedModeData = this.modeTable[this.selectedMode]?.find(item =>
         item.hardware_name === this.selectedHardware && item.model_name === this.selectedModel
       );
@@ -537,48 +548,52 @@ export default {
               }
             }
           ];
-          // Combine the matching data into the `data` array
-          // this.data = [
-          //   ...this.data,
-          //   ...matchingModeData.map(item => ({
-          //     name: `${item.model_name} + ${item.hardware_name} (Mode)`,
-          //     values: item
-          //   })),
-          //   ...matchingModelData.map(item => ({
-          //     name: `${item.model_name} + ${item.hardware_name} (Model)`,
-          //     values: item
-          //   })),
-          //   ...matchingHardwareData.map(item => ({
-          //     name: `${item.model_name} + ${item.hardware_name} (Hardware)`,
-          //     values: item
-          //   }))
-          // ];
-          console.log('Data:1', this.data);  
-          // console.log(response.data);
         })
         .catch(error => {
           console.error('Error fetching data:', error);
         });
-
+      await axios.post('http://127.0.0.1:8000/api/get_score_suggestion', {
+        "test_result": this.id,
+      })
+        .then(response => {
+          // 处理响应数据
+          this.score = response.data.score;
+          this.suggestion = response.data.suggestion;
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
       this.$nextTick(() => {
         this.initChart();
       });
     },
   },
   mounted() {
-    // this.initCharts();
     this.fetchData();
-    // this.initChart();
   },
   watch: {
     selectedHardware(newHardware) {
       if (newHardware !== '全部' && this.selectedModel !== '全部') {
         this.triggerEvent();
       }
+      else {
+        this.flag = false;
+      }
     },
     selectedModel(newModel) {
       if (newModel !== '全部' && this.selectedHardware !== '全部') {
         this.triggerEvent();
+      }
+      else {
+        this.flag = false;
+      }
+    },
+    selectedMode(newMode) {
+      if (this.newHardware !== '全部' && this.selectedModel !== '全部') {
+        this.triggerEvent();
+      }
+      else {
+        this.flag = false;
       }
     }
   }
