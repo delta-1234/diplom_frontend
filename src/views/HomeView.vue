@@ -397,7 +397,7 @@ export default {
         ...(modeIndicators[this.selectedMode] || []),
         { name: '平均视觉处理时间 (ns)', max: 100000000 },
         { name: '平均模态对齐时间 (ns)', max: 100000000 },
-        { name: '平均文本生成时间 (ns)', max: 1000000000 },
+        { name: '平均文本生成时间 (ns)', max: 1500000000 },
         { name: '平均利用率 (%)', max: 100 },
         { name: '平均显存占用 (MB)', max: 100000 },
         { name: '每查询的能耗 (J)', max: 500 },
@@ -431,24 +431,24 @@ export default {
 
       const reverseTimeValues = (values) => {
         const reversedValues = { ...values };
-        if ('首个令牌时间(ns)' in reversedValues) {
-          reversedValues['首个令牌时间(ns)'] = allIndicators.find(ind => ind.name === '首个令牌时间(ns)').max - reversedValues['首个令牌时间(ns)'];
-        }
-        if ('90百分位延迟(ns)' in reversedValues) {
-          reversedValues['90百分位延迟(ns)'] = allIndicators.find(ind => ind.name === '90百分位延迟(ns)').max - reversedValues['90百分位延迟(ns)'];
-        }
-        if ('平均视觉处理时间 (ns)' in reversedValues) {
-          reversedValues['平均视觉处理时间 (ns)'] = allIndicators.find(ind => ind.name === '平均视觉处理时间 (ns)').max - reversedValues['平均视觉处理时间 (ns)'];
-        }
-        if ('平均模态对齐时间 (ns)' in reversedValues) {
-          reversedValues['平均模态对齐时间 (ns)'] = allIndicators.find(ind => ind.name === '平均模态对齐时间 (ns)').max - reversedValues['平均模态对齐时间 (ns)'];
-        }
-        if ('平均文本生成时间 (ns)' in reversedValues) {
-          reversedValues['平均文本生成时间 (ns)'] = allIndicators.find(ind => ind.name === '平均文本生成时间 (ns)').max - reversedValues['平均文本生成时间 (ns)'];
-        }
-        if ('每秒token数' in reversedValues && reversedValues['每秒token数'] <= 100) {
-          reversedValues['每秒token数'] = reversedValues['每秒token数']*50;
-        }
+        // if ('首个令牌时间(ns)' in reversedValues) {
+        //   reversedValues['首个令牌时间(ns)'] = allIndicators.find(ind => ind.name === '首个令牌时间(ns)').max - reversedValues['首个令牌时间(ns)'];
+        // }
+        // if ('90百分位延迟(ns)' in reversedValues) {
+        //   reversedValues['90百分位延迟(ns)'] = allIndicators.find(ind => ind.name === '90百分位延迟(ns)').max - reversedValues['90百分位延迟(ns)'];
+        // }
+        // if ('平均视觉处理时间 (ns)' in reversedValues) {
+        //   reversedValues['平均视觉处理时间 (ns)'] = allIndicators.find(ind => ind.name === '平均视觉处理时间 (ns)').max - reversedValues['平均视觉处理时间 (ns)'];
+        // }
+        // if ('平均模态对齐时间 (ns)' in reversedValues) {
+        //   reversedValues['平均模态对齐时间 (ns)'] = allIndicators.find(ind => ind.name === '平均模态对齐时间 (ns)').max - reversedValues['平均模态对齐时间 (ns)'];
+        // }
+        // if ('平均文本生成时间 (ns)' in reversedValues) {
+        //   reversedValues['平均文本生成时间 (ns)'] = allIndicators.find(ind => ind.name === '平均文本生成时间 (ns)').max - reversedValues['平均文本生成时间 (ns)'];
+        // }
+        // if ('每秒token数' in reversedValues && reversedValues['每秒token数'] <= 100) {
+        //   reversedValues['每秒token数'] = reversedValues['每秒token数']*50;
+        // }
         return reversedValues;
       };
       const option = {

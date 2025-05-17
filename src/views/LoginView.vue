@@ -60,7 +60,7 @@ const handleLogin = async () => {
 
     if (response.data.code === 200) {
       localStorage.setItem('token', 'your-auth-token') // 实际使用response中的token
-      router.push('/')
+      router.push('/home')
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.msg || '登录失败'

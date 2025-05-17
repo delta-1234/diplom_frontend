@@ -5,7 +5,11 @@ import RegisterView from '../views/RegisterView.vue'
 
 const routes = [
   {
-    path: '/',
+    path: "/",
+    redirect: "/login" // 关键：根路径重定向到登录页
+  },
+  {
+    path: '/home',
     name: 'home',
     component: HomeView,
     meta: { requiresAuth: true } // 需要登录
