@@ -76,13 +76,13 @@
     <div v-show="flag" style="display: flex;">
       <div ref="radarChart" style="width: 800px; height: 600px;"></div>
       <div v-show="flag" ref="barChart" style="width: 800px; height: 600px;"></div>
-      
+
 
     </div>
     <div>
-        <p style="font-size: 18px; font-weight: bold;">评分: {{ score }}</p>
-        <p style="font-size: 16px; color: gray;">建议: {{ suggestion }}</p>
-      </div>
+      <p style="font-size: 18px; font-weight: bold;">评分: {{ score }}</p>
+      <p style="font-size: 16px; color: gray;">建议: {{ suggestion }}</p>
+    </div>
 
     <!-- 图表容器保持不变 -->
     <div class="chart-row">
@@ -116,13 +116,13 @@ export default {
       hardwares: ['全部', 'NVIDIA GeForce RTX 3090', 'NVIDIA A800 80GB PCIe'],
       models: ['全部', 'llava-v1.5-7b', 'llava-1.5-7b-hf', 'llava-1.5-13b-hf'],
       modeHeaders: {
-        Offline: ['模型名称', '硬件参数', '精准度 (%)', '每秒样本数', '每秒token数'],
-        Server: ['模型名称', '硬件参数', '精准度 (%)', '每秒样本数', '每秒token数', '首个令牌时间(ns)'],
-        SingleStream: ['模型名称', '硬件参数', '精准度 (%)', '90百分位延迟(ns)'],
-        MultiStream: ['模型名称', '硬件参数', '精准度 (%)', '90百分位延迟(ns)', '流的数量']
+        Offline: ['测试编号', '模型名称', '硬件参数', '精准度 (%)', '每秒样本数', '每秒token数', '测试时间'],
+        Server: ['测试编号', '模型名称', '硬件参数', '精准度 (%)', '每秒样本数', '每秒token数', '首个令牌时间(ns)', '测试时间'],
+        SingleStream: ['测试编号', '模型名称', '硬件参数', '精准度 (%)', '90百分位延迟(ns)', '测试时间'],
+        MultiStream: ['测试编号', '模型名称', '硬件参数', '精准度 (%)', '90百分位延迟(ns)', '流的数量', '测试时间']
       },
-      modelHeaders: ['模型名称', '硬件参数', '平均视觉处理时间 (ns)', '平均模态对齐时间 (ns)', '平均文本生成时间 (ns)'],
-      hardwareHeaders: ['模型名称', '硬件参数', '平均利用率 (%)', '平均显存占用 (MB)', '每查询的能耗 (J)'],
+      modelHeaders: ['测试编号', '模型名称', '硬件参数', '平均视觉处理时间 (ns)', '平均模态对齐时间 (ns)', '平均文本生成时间 (ns)', '测试时间'],
+      hardwareHeaders: ['测试编号', '模型名称', '硬件参数', '平均利用率 (%)', '平均显存占用 (MB)', '每查询的能耗 (J)', '测试时间'],
       modeTable: {
         "Offline": [
           {
@@ -327,7 +327,7 @@ export default {
           (this.selectedHardware === '全部' || item.hardware_name === this.selectedHardware) &&
           (this.selectedModel === '全部' || item.model_name === this.selectedModel)
         )
-        .map(({ id, ...rest }) => rest);
+        .map(({ ...rest }) => rest);
     },
     // 模型表格
     modelTableData() {
@@ -336,7 +336,7 @@ export default {
           (this.selectedHardware === '全部' || item.hardware_name === this.selectedHardware) &&
           (this.selectedModel === '全部' || item.model_name === this.selectedModel)
         )
-        .map(({ id, ...rest }) => rest);
+        .map(({ ...rest }) => rest);
     },
     // 硬件表格
     hardwareTableData() {
@@ -345,7 +345,7 @@ export default {
           (this.selectedHardware === '全部' || item.hardware_name === this.selectedHardware) &&
           (this.selectedModel === '全部' || item.model_name === this.selectedModel)
         )
-        .map(({ id, ...rest }) => rest);
+        .map(({ ...rest }) => rest);
     }
   },
   methods: {
@@ -524,7 +524,25 @@ export default {
               : [],
             type: 'bar'
           }
-        ]
+        ],
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: (params) => {
+            // params is an array of series data for the hovered category
+            const idx = params[0].dataIndex;
+            // Find the corresponding key for this bar
+            const key = Object.keys(this.data[0].values)[idx];
+            const translatedKey = Object.keys(translateKeys).find(k => translateKeys[k] === key) || key;
+            const v0 = this.data[0].values[key] ?? '-';
+            const v1 = this.data[1]?.values?.[key] ?? '-';
+            return `
+              <strong>${translatedKey}</strong><br>
+              当前: ${v0}<br>
+              Baseline: ${v1}
+            `;
+          }
+        }
       };
       barChart.setOption(barOption);
 
