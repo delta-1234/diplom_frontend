@@ -91,6 +91,11 @@ main {
   flex: 1;
 }
 
+main.container.mt-4 {
+  max-width: 1600px;
+  margin: auto;
+}
+
 /* 全局链接样式 */
 a {
   text-decoration: none;

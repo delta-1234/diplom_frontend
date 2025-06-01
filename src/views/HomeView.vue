@@ -29,7 +29,7 @@
 
     <!-- 动态表格 -->
     <div class="dynamic-table" ref="modeTable">
-      <h2>{{ selectedMode }} 模式性能指标</h2>
+      <h2>{{ selectedMode }} 模式综合能力指标</h2>
       <table>
         <thead>
           <tr>
@@ -44,7 +44,7 @@
       </table>
     </div>
     <div class="dynamic-table">
-      <h2>模型性能指标</h2>
+      <h2>多模态大模型性能指标</h2>
       <table>
         <thead>
           <tr>
@@ -59,7 +59,7 @@
       </table>
     </div>
     <div class="dynamic-table">
-      <h2>硬件性能指标</h2>
+      <h2>推理硬件能力评测指标</h2>
       <table>
         <thead>
           <tr>
@@ -81,7 +81,7 @@
     </div>
     <div>
       <p style="font-size: 18px; font-weight: bold;">评分: {{ score }}</p>
-      <p style="font-size: 16px; color: gray;">建议: {{ suggestion }}</p>
+      <p style="font-size: 16px; color: black;">建议: {{ suggestion }}</p>
     </div>
 
     <!-- 图表容器保持不变 -->
@@ -113,7 +113,7 @@ export default {
       selectedHardware: '全部',
       selectedModel: '全部',
       modes: ['Offline', 'Server', 'SingleStream', 'MultiStream'],
-      hardwares: ['全部', 'NVIDIA GeForce RTX 3090', 'NVIDIA A800 80GB PCIe'],
+      hardwares: ['全部', 'NVIDIA GeForce RTX 3090*1', 'NVIDIA GeForce RTX 3090*2', 'NVIDIA A800 80GB PCIe*1'],
       models: ['全部', 'llava-v1.5-7b', 'llava-1.5-7b-hf', 'llava-1.5-13b-hf'],
       modeHeaders: {
         Offline: ['测试编号', '模型名称', '硬件参数', '精准度 (%)', '每秒样本数', '每秒token数', '测试时间'],
@@ -380,7 +380,7 @@ export default {
           { name: '精准度 (%)', max: 100 },
           { name: '每秒样本数', max: 3 },
           { name: '每秒token数', max: 1000 },
-          { name: '首个令牌时间(ns)', max: 10000000000 }
+          { name: '首个令牌时间(ns)', max: 12000000000 }
         ],
         SingleStream: [
           { name: '精准度 (%)', max: 100 },
@@ -400,7 +400,7 @@ export default {
         { name: '平均文本生成时间 (ns)', max: 1500000000 },
         { name: '平均利用率 (%)', max: 100 },
         { name: '平均显存占用 (MB)', max: 100000 },
-        { name: '每查询的能耗 (J)', max: 500 },
+        { name: '每查询的能耗 (J)', max: 700 },
       ];
       const translateKeys = {
         '精准度 (%)': 'accuracy',
@@ -431,24 +431,30 @@ export default {
 
       const reverseTimeValues = (values) => {
         const reversedValues = { ...values };
-        // if ('首个令牌时间(ns)' in reversedValues) {
-        //   reversedValues['首个令牌时间(ns)'] = allIndicators.find(ind => ind.name === '首个令牌时间(ns)').max - reversedValues['首个令牌时间(ns)'];
-        // }
-        // if ('90百分位延迟(ns)' in reversedValues) {
-        //   reversedValues['90百分位延迟(ns)'] = allIndicators.find(ind => ind.name === '90百分位延迟(ns)').max - reversedValues['90百分位延迟(ns)'];
-        // }
-        // if ('平均视觉处理时间 (ns)' in reversedValues) {
-        //   reversedValues['平均视觉处理时间 (ns)'] = allIndicators.find(ind => ind.name === '平均视觉处理时间 (ns)').max - reversedValues['平均视觉处理时间 (ns)'];
-        // }
-        // if ('平均模态对齐时间 (ns)' in reversedValues) {
-        //   reversedValues['平均模态对齐时间 (ns)'] = allIndicators.find(ind => ind.name === '平均模态对齐时间 (ns)').max - reversedValues['平均模态对齐时间 (ns)'];
-        // }
-        // if ('平均文本生成时间 (ns)' in reversedValues) {
-        //   reversedValues['平均文本生成时间 (ns)'] = allIndicators.find(ind => ind.name === '平均文本生成时间 (ns)').max - reversedValues['平均文本生成时间 (ns)'];
-        // }
-        // if ('每秒token数' in reversedValues && reversedValues['每秒token数'] <= 100) {
-        //   reversedValues['每秒token数'] = reversedValues['每秒token数']*50;
-        // }
+        if ('首个令牌时间(ns)' in reversedValues) {
+          if (reversedValues['首个令牌时间(ns)'] > 12000000000) {
+            reversedValues['首个令牌时间(ns)'] = reversedValues['首个令牌时间(ns)'] / 500;
+          }
+          reversedValues['首个令牌时间(ns)'] = allIndicators.find(ind => ind.name === '首个令牌时间(ns)').max - reversedValues['首个令牌时间(ns)'];
+        }
+        if ('90百分位延迟(ns)' in reversedValues) {
+          reversedValues['90百分位延迟(ns)'] = allIndicators.find(ind => ind.name === '90百分位延迟(ns)').max - reversedValues['90百分位延迟(ns)'];
+        }
+        if ('平均视觉处理时间 (ns)' in reversedValues) {
+          reversedValues['平均视觉处理时间 (ns)'] = allIndicators.find(ind => ind.name === '平均视觉处理时间 (ns)').max - reversedValues['平均视觉处理时间 (ns)'];
+        }
+        if ('平均模态对齐时间 (ns)' in reversedValues) {
+          reversedValues['平均模态对齐时间 (ns)'] = allIndicators.find(ind => ind.name === '平均模态对齐时间 (ns)').max - reversedValues['平均模态对齐时间 (ns)'];
+        }
+        if ('平均文本生成时间 (ns)' in reversedValues) {
+          reversedValues['平均文本生成时间 (ns)'] = allIndicators.find(ind => ind.name === '平均文本生成时间 (ns)').max - reversedValues['平均文本生成时间 (ns)'];
+        }
+        if ('每查询的能耗 (J)' in reversedValues) {
+          reversedValues['每查询的能耗 (J)'] = allIndicators.find(ind => ind.name === '每查询的能耗 (J)').max - reversedValues['每查询的能耗 (J)'];
+        }
+        if ('每秒token数' in reversedValues && reversedValues['每秒token数'] <= 100) {
+          reversedValues['每秒token数'] = reversedValues['每秒token数'] * 50;
+        }
         return reversedValues;
       };
       const option = {
@@ -460,7 +466,15 @@ export default {
           type: 'scroll'   // 如果图例项过多，自动启用滚动（可选）
         },
         radar: {
-          indicator: allIndicators,
+          indicator: allIndicators.map(ind => ({
+            name: `${ind.name}\n(max: ${
+              // 反转的指标显示max为0
+              ['首个令牌时间(ns)', '90百分位延迟(ns)', '平均视觉处理时间 (ns)', '平均模态对齐时间 (ns)', '平均文本生成时间 (ns)', '每查询的能耗 (J)'].includes(ind.name)
+                ? 0
+                : ind.max
+              })`,
+            max: ind.max
+          })),
           shape: 'circle',
           axisName: {
             color: '#666'
@@ -468,10 +482,16 @@ export default {
         },
         series: [{
           type: 'radar',
-          data: this.data.map(item => ({
-            value: Object.values(reverseTimeValues(translatedValues(item.values))),
-            name: item.name
-          })),
+          data: this.data.map(item => {
+            const originalValues = item.values;
+            const translated = translatedValues(originalValues); // 翻译指标名称（可选）
+            const converted = reverseTimeValues(translated);      // 转换数值（如反转轴方向）
+            return {
+              value: Object.values(converted), // 转换后的值（用于绘图）
+              raw: Object.values(originalValues), // 原始值（用于显示）
+              name: item.name
+            };
+          }),
           areaStyle: {
             opacity: 0.2
           }
@@ -479,7 +499,7 @@ export default {
         tooltip: {
           trigger: 'item',
           formatter: function (params) {
-            const data = params.data.value;
+            const data = params.data.raw;
             const indicators = allIndicators.map(indicator => indicator.name);
             let tooltipContent = `<strong>${params.name}</strong><br>`;
             indicators.forEach((indicator, index) => {
@@ -507,8 +527,9 @@ export default {
           {
             data: this.data[0].values && this.data[1].values
               ? Object.keys(this.data[0].values).map(key => {
+                console.log(this.data)
                 const translatedKey = Object.keys(translateKeys).find(k => translateKeys[k] === key);
-                const isTimeMetric = ['首个令牌时间(ns)', '90百分位延迟(ns)', '平均视觉处理时间 (ns)', '平均模态对齐时间 (ns)', '平均文本生成时间 (ns)'].includes(translatedKey);
+                const isTimeMetric = ['首个令牌时间(ns)', '90百分位延迟(ns)', '平均视觉处理时间 (ns)', '平均模态对齐时间 (ns)', '平均文本生成时间 (ns)', '每查询的能耗 (J)'].includes(translatedKey);
                 const ratio = this.data[1].values[key] !== 0
                   ? isTimeMetric
                     ? this.data[1].values[key] / this.data[0].values[key]
@@ -573,9 +594,9 @@ export default {
       }
       // console.log('Selected Mode Data:', selectedModeData);
       const mergedData = {
-        ...Object.fromEntries(Object.entries(selectedModeData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
-        ...Object.fromEntries(Object.entries(selectedModelData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
-        ...Object.fromEntries(Object.entries(selectedHardwareData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key)))
+        ...Object.fromEntries(Object.entries(selectedModeData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key))),
+        ...Object.fromEntries(Object.entries(selectedModelData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key))),
+        ...Object.fromEntries(Object.entries(selectedHardwareData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key)))
       };
       // console.log('Merged Data:', mergedData);
       this.data = [{
@@ -604,9 +625,9 @@ export default {
             {
               name: 'Baseline',
               values: {
-                ...Object.fromEntries(Object.entries(matchingModeData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
-                ...Object.fromEntries(Object.entries(matchingModelData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key))),
-                ...Object.fromEntries(Object.entries(matchingHardwareData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name'].includes(key)))
+                ...Object.fromEntries(Object.entries(matchingModeData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key))),
+                ...Object.fromEntries(Object.entries(matchingModelData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key))),
+                ...Object.fromEntries(Object.entries(matchingHardwareData || {}).filter(([key]) => !['id', 'model_name', 'hardware_name', 'test_time'].includes(key)))
               }
             }
           ];
@@ -665,7 +686,7 @@ export default {
 
 <style scoped>
 .metrics-container {
-  max-width: 1400px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 2rem;
 }
